@@ -135,7 +135,7 @@ class DailyChecklistScreen extends ConsumerWidget {
                                       color: Colors.grey,
                                     ),
                             );
-                          }).toList(),
+                          }),
                         ],
                       ),
                     );

@@ -101,7 +101,7 @@ class _TeamSelectionScreenState extends ConsumerState<TeamSelectionScreen> {
                         enabled: doctor.isAvailable,
                       ),
                     );
-                  }).toList(),
+                  }),
 
                   const SizedBox(height: 24),
 
@@ -147,7 +147,7 @@ class _TeamSelectionScreenState extends ConsumerState<TeamSelectionScreen> {
                         enabled: nurse.isAvailable,
                       ),
                     );
-                  }).toList(),
+                  }),
 
                   const SizedBox(height: 24),
 
