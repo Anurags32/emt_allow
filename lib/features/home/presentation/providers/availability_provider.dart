@@ -116,7 +116,7 @@ class AvailabilityNotifier extends StateNotifier<AvailabilityState> {
 
 final availabilityProvider =
     StateNotifierProvider<AvailabilityNotifier, AvailabilityState>((ref) {
-      final dio = ref.watch(dioClientProvider);
-      final storage = ref.watch(secureStorageServiceProvider);
+      final dio = ref.read(dioClientProvider);
+      final storage = ref.read(secureStorageServiceProvider);
       return AvailabilityNotifier(dio, storage);
     });

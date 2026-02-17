@@ -61,7 +61,15 @@ Future<int> getPendingLogin() async {
 
 **Extract pending_login**:
 ```dart
-final pendingLogin = data['pending_login'] as int? ?? 0;
+// Handle pending_login - can be int or bool
+int pendingLogin = 0;
+if (data['pending_login'] != null) {
+  if (data['pending_login'] is int) {
+    pendingLogin = data['pending_login'] as int;
+  } else if (data['pending_login'] is bool) {
+    pendingLogin = (data['pending_login'] as bool) ? 1 : 0;
+  }
+}
 
 await _storage.saveLoginData(
   ...
@@ -204,9 +212,13 @@ If pending_login not in response:
 
 ### ✅ Invalid Value
 ```
-If pending_login is not a number:
-  Default value: 0
-  Status: Offline
+If pending_login is bool:
+  true → 1 (Online)
+  false → 0 (Offline)
+
+If pending_login is int:
+  1 → Online
+  0 → Offline
 ```
 
 ### ✅ Null Value

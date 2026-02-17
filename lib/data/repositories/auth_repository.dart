@@ -46,7 +46,16 @@ class AuthRepository {
           final isDriver = data['is_driver'] as bool? ?? false;
           final expiryTime = data['expiry_time']?.toString() ?? '';
           final mySchedule = jsonEncode(data['my_schedule'] ?? []);
-          final pendingLogin = data['pending_login'] as int? ?? 0;
+
+          // Handle pending_login - can be int or bool
+          int pendingLogin = 0;
+          if (data['pending_login'] != null) {
+            if (data['pending_login'] is int) {
+              pendingLogin = data['pending_login'] as int;
+            } else if (data['pending_login'] is bool) {
+              pendingLogin = (data['pending_login'] as bool) ? 1 : 0;
+            }
+          }
 
           // Determine role based on is_emt and is_driver flags
           UserRole role = UserRole.emt;

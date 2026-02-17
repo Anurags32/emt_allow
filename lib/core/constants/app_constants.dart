@@ -20,6 +20,8 @@ class AppConstants {
   static const String checkInEndpoint = '/api/check_in';
   static const String checkInOutEndpoint = '/api/check_in_out';
   static const String getScheduleEndpoint = '/api/get_schedule';
+  static const String postEmtNotesEndpoint = '/api/post_emt_notes';
+  static const String getEmtNotesEndpoint = '/api/get_emt_notes';
   static const String ambulanceEndpoint = '/api/ambulance';
   static const String missionEndpoint = '/api/mission';
   static const String patientEndpoint = '/api/patient';

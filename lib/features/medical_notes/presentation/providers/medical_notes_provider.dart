@@ -22,11 +22,16 @@ class MedicalNotesNotifier
     }
   }
 
-  Future<bool> addNote(String content, List<String> attachmentPaths) async {
+  Future<bool> addNote(
+    String content,
+    List<String> attachmentPaths,
+    String caseId,
+  ) async {
     try {
       final note = await _repository.createNote(
         missionId: _missionId,
         content: content,
+        caseId: caseId,
         attachmentPaths: attachmentPaths,
       );
 

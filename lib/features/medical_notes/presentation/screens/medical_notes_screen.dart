@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
@@ -52,9 +53,61 @@ class _MedicalNotesScreenState extends ConsumerState<MedicalNotesScreen> {
       return;
     }
 
+    // Show dialog to get case_id
+    final caseId = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        final caseIdController = TextEditingController(text: 'CASE/26/00024');
+        return AlertDialog(
+          title: const Text('Enter Case ID'),
+          content: TextField(
+            controller: caseIdController,
+            decoration: const InputDecoration(
+              labelText: 'Case ID',
+              hintText: 'e.g., CASE/26/00024',
+              border: OutlineInputBorder(),
+            ),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final value = caseIdController.text.trim();
+                if (value.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Case ID cannot be empty')),
+                  );
+                  return;
+                }
+                Navigator.pop(context, value);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    // If user cancelled, return
+    if (caseId == null || caseId.isEmpty) return;
+
+    if (kDebugMode) {
+      debugPrint(
+        '[MEDICAL NOTES SCREEN] Saving note with ${_attachments.length} attachments',
+      );
+      debugPrint('[MEDICAL NOTES SCREEN] Case ID: $caseId');
+      for (var i = 0; i < _attachments.length; i++) {
+        debugPrint('[MEDICAL NOTES SCREEN] Attachment $i: ${_attachments[i]}');
+      }
+    }
+
     final success = await ref
         .read(medicalNotesProvider(widget.missionId).notifier)
-        .addNote(_noteController.text.trim(), _attachments);
+        .addNote(_noteController.text.trim(), _attachments, caseId);
 
     if (!mounted) return;
 
