@@ -9,6 +9,7 @@ class AppConstants {
   static const String isDriverKey = 'is_driver';
   static const String expiryTimeKey = 'expiry_time';
   static const String myScheduleKey = 'my_schedule';
+  static const String pendingLoginKey = 'pending_login';
 
   // API Base URL
   static const String baseUrl = 'http://192.168.29.106:8018';
@@ -18,6 +19,7 @@ class AppConstants {
   static const String logoutEndpoint = '/api/logout';
   static const String checkInEndpoint = '/api/check_in';
   static const String checkInOutEndpoint = '/api/check_in_out';
+  static const String getScheduleEndpoint = '/api/get_schedule';
   static const String ambulanceEndpoint = '/api/ambulance';
   static const String missionEndpoint = '/api/mission';
   static const String patientEndpoint = '/api/patient';

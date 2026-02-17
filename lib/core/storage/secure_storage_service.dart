@@ -43,6 +43,7 @@ class SecureStorageService {
     required bool isDriver,
     required String expiryTime,
     required String mySchedule,
+    required int pendingLogin,
   }) async {
     await Future.wait([
       _storage.write(key: AppConstants.tokenKey, value: sessionToken),
@@ -56,6 +57,10 @@ class SecureStorageService {
       _storage.write(key: AppConstants.isDriverKey, value: isDriver.toString()),
       _storage.write(key: AppConstants.expiryTimeKey, value: expiryTime),
       _storage.write(key: AppConstants.myScheduleKey, value: mySchedule),
+      _storage.write(
+        key: AppConstants.pendingLoginKey,
+        value: pendingLogin.toString(),
+      ),
     ]);
   }
 
@@ -88,6 +93,11 @@ class SecureStorageService {
 
   Future<String?> getMySchedule() async {
     return await _storage.read(key: AppConstants.myScheduleKey);
+  }
+
+  Future<int> getPendingLogin() async {
+    final value = await _storage.read(key: AppConstants.pendingLoginKey);
+    return int.tryParse(value ?? '0') ?? 0;
   }
 
   // Save schedule list

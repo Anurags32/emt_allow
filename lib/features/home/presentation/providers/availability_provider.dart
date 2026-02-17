@@ -29,9 +29,29 @@ class AvailabilityNotifier extends StateNotifier<AvailabilityState> {
   final Dio _dio;
   final SecureStorageService _storage;
 
-  AvailabilityNotifier(this._dio, this._storage) : super(AvailabilityState());
+  AvailabilityNotifier(this._dio, this._storage) : super(AvailabilityState()) {
+    _initializeStatus();
+  }
 
-  Future<void> toggleAvailability() async {
+  // Initialize status from pending_login
+  Future<void> _initializeStatus() async {
+    try {
+      final pendingLogin = await _storage.getPendingLogin();
+      state = state.copyWith(isOnline: pendingLogin == 1);
+
+      if (kDebugMode) {
+        debugPrint(
+          '[AVAILABILITY] Initialized - Pending Login: $pendingLogin, Online: ${pendingLogin == 1}',
+        );
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[AVAILABILITY] Init error: $e');
+      }
+    }
+  }
+
+  Future<bool> toggleAvailability() async {
     final newStatus = !state.isOnline;
     state = state.copyWith(isLoading: true, error: null);
 
@@ -61,6 +81,8 @@ class AvailabilityNotifier extends StateNotifier<AvailabilityState> {
             '[AVAILABILITY] Status updated - User ID: $userId, Online: $newStatus',
           );
         }
+
+        return true;
       } else {
         throw Exception('Failed to update availability');
       }
@@ -76,12 +98,14 @@ class AvailabilityNotifier extends StateNotifier<AvailabilityState> {
         isLoading: false,
         error: e.response?.data['message'] ?? 'Failed to update availability',
       );
+      return false;
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[AVAILABILITY ERROR] $e');
       }
 
       state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
     }
   }
 

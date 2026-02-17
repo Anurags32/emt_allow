@@ -204,14 +204,14 @@ class MissionDetailsScreen extends ConsumerWidget {
               const SizedBox(height: 16),
 
               // Action Buttons
-              ElevatedButton.icon(
-                onPressed: () {
-                  context.push('/patient-details/$missionId');
-                },
-                icon: const Icon(Icons.person),
-                label: const Text('View Patient Details'),
-              ),
-              const SizedBox(height: 12),
+              // ElevatedButton.icon(
+              //   onPressed: () {
+              //     context.push('/patient-details/$missionId');
+              //   },
+              //   icon: const Icon(Icons.person),
+              //   label: const Text('View Patient Details'),
+              // ),
+              // const SizedBox(height: 12),
               ElevatedButton.icon(
                 onPressed: () {
                   context.push('/medical-notes/$missionId');

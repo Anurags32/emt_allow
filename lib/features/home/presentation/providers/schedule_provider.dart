@@ -1,22 +1,68 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:convert';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../../../../domain/models/schedule_model.dart';
 import '../../../../core/storage/secure_storage_service.dart';
+import '../../../../core/network/dio_client.dart';
+import '../../../../core/constants/app_constants.dart';
 
+// Fetch schedule from API
 final scheduleProvider = FutureProvider<List<ScheduleModel>>((ref) async {
+  final dio = ref.watch(dioClientProvider);
   final storage = ref.watch(secureStorageServiceProvider);
-  final scheduleJson = await storage.getSchedule();
-
-  if (scheduleJson == null || scheduleJson.isEmpty) {
-    return [];
-  }
 
   try {
-    final List<dynamic> scheduleList = jsonDecode(scheduleJson);
-    return scheduleList
-        .map((json) => ScheduleModel.fromJson(json as Map<String, dynamic>))
-        .toList();
+    // Get user_id from storage
+    final userId = await storage.getUserId();
+
+    if (userId == null || userId.isEmpty) {
+      if (kDebugMode) {
+        debugPrint('[SCHEDULE] User ID not found');
+      }
+      return [];
+    }
+
+    // Call API
+    final response = await dio.get(
+      AppConstants.getScheduleEndpoint,
+      data: {'user_id': int.parse(userId)},
+    );
+
+    if (kDebugMode) {
+      debugPrint('[SCHEDULE] Response: ${response.data}');
+    }
+
+    if (response.statusCode == 200 && response.data != null) {
+      final responseData = response.data;
+
+      if (responseData['status'] == 'success' && responseData['data'] != null) {
+        final List<dynamic> scheduleList = responseData['data'];
+
+        final schedules = scheduleList
+            .map((json) => ScheduleModel.fromJson(json as Map<String, dynamic>))
+            .toList();
+
+        if (kDebugMode) {
+          debugPrint('[SCHEDULE] Fetched ${schedules.length} schedules');
+        }
+
+        return schedules;
+      }
+    }
+
+    return [];
+  } on DioException catch (e) {
+    if (kDebugMode) {
+      debugPrint('[SCHEDULE ERROR] ${e.message}');
+      if (e.response != null) {
+        debugPrint('[SCHEDULE ERROR] Response: ${e.response!.data}');
+      }
+    }
+    return [];
   } catch (e) {
+    if (kDebugMode) {
+      debugPrint('[SCHEDULE ERROR] $e');
+    }
     return [];
   }
 });

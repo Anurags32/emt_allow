@@ -73,12 +73,12 @@ class ProfileScreen extends ConsumerWidget {
                   Card(
                     child: Column(
                       children: [
-                        ListTile(
-                          leading: const Icon(Icons.badge),
-                          title: const Text('Employee ID'),
-                          subtitle: Text(user.employeeId),
-                        ),
-                        const Divider(height: 1),
+                        // ListTile(
+                        //   leading: const Icon(Icons.badge),
+                        //   title: const Text('Employee ID'),
+                        //   subtitle: Text(user.employeeId),
+                        // ),
+                        // const Divider(height: 1),
                         ListTile(
                           leading: const Icon(Icons.email),
                           title: const Text('Email'),
@@ -113,7 +113,7 @@ class ProfileScreen extends ConsumerWidget {
                               ),
                               children: [
                                 const Text(
-                                  'Emergency Medical Services application for EMT, Nurse, and Doctor personnel.',
+                                  'Emergency Medical Services application for EMT.',
                                 ),
                               ],
                             );

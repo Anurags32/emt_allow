@@ -21,6 +21,16 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('EMT Dashboard'),
         actions: [
+          CircleAvatar(
+            backgroundColor: Colors.white,
+            child: IconButton(
+              icon: const Icon(Icons.person),
+              tooltip: 'profile',
+              onPressed: () {
+                context.push('/profile');
+              },
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Logout',
@@ -59,7 +69,13 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
+          // Refresh active mission
           await ref.read(activeMissionProvider.notifier).loadActiveMission();
+
+          // Refresh schedule data
+          ref.invalidate(scheduleProvider);
+          ref.invalidate(todayScheduleProvider);
+          ref.invalidate(upcomingSchedulesProvider);
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -155,10 +171,36 @@ class HomeScreen extends ConsumerWidget {
                       else
                         Switch(
                           value: availabilityState.isOnline,
-                          onChanged: (value) {
-                            ref
-                                .read(availabilityProvider.notifier)
-                                .toggleAvailability();
+                          onChanged: (value) async {
+                            // If going online, show confirmation with today's schedule
+                            if (!availabilityState.isOnline) {
+                              final todaySchedule = await ref.read(
+                                todayScheduleProvider.future,
+                              );
+
+                              if (todaySchedule != null && context.mounted) {
+                                _showOnlineConfirmation(
+                                  context,
+                                  ref,
+                                  todaySchedule,
+                                );
+                              } else if (context.mounted) {
+                                // No schedule for today, show error
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'No schedule found for today. Please contact admin.',
+                                    ),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                              }
+                            } else {
+                              // Going offline, no confirmation needed
+                              ref
+                                  .read(availabilityProvider.notifier)
+                                  .toggleAvailability();
+                            }
                           },
                         ),
                     ],
@@ -415,74 +457,220 @@ class HomeScreen extends ConsumerWidget {
               const SizedBox(height: 16),
 
               // Quick Actions
-              Text(
-                'Quick Actions',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: Card(
-                      child: InkWell(
-                        onTap: () => context.push('/ambulance-assignment'),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.local_shipping,
-                                size: 40,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Ambulance',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Card(
-                      child: InkWell(
-                        onTap: () => context.push('/profile'),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.person,
-                                size: 40,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Profile',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              // Text(
+              //   'Quick Actions',
+              //   style: Theme.of(
+              //     context,
+              //   ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              // ),
+              // const SizedBox(height: 12),
+              // Row(
+              //   children: [
+              //     Expanded(
+              //       child: Card(
+              //         child: InkWell(
+              //           onTap: () => context.push('/ambulance-assignment'),
+              //           borderRadius: BorderRadius.circular(12),
+              //           child: Padding(
+              //             padding: const EdgeInsets.all(16),
+              //             child: Column(
+              //               children: [
+              //                 Icon(
+              //                   Icons.local_shipping,
+              //                   size: 40,
+              //                   color: Theme.of(context).colorScheme.primary,
+              //                 ),
+              //                 const SizedBox(height: 8),
+              //                 Text(
+              //                   'Ambulance',
+              //                   textAlign: TextAlign.center,
+              //                   style: Theme.of(context).textTheme.bodyMedium,
+              //                 ),
+              //               ],
+              //             ),
+              //           ),
+              //         ),
+              //       ),
+              //     ),
+              //     const SizedBox(width: 12),
+              //     Expanded(
+              //       child: Card(
+              //         child: InkWell(
+              //           onTap: () => context.push('/profile'),
+              //           borderRadius: BorderRadius.circular(12),
+              //           child: Padding(
+              //             padding: const EdgeInsets.all(16),
+              //             child: Column(
+              //               children: [
+              //                 Icon(
+              //                   Icons.person,
+              //                   size: 40,
+              //                   color: Theme.of(context).colorScheme.primary,
+              //                 ),
+              //                 const SizedBox(height: 8),
+              //                 Text(
+              //                   'Profile',
+              //                   textAlign: TextAlign.center,
+              //                   style: Theme.of(context).textTheme.bodyMedium,
+              //                 ),
+              //               ],
+              //             ),
+              //           ),
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
             ],
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          // Show loading indicator
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Text('Refreshing data...'),
+                ],
+              ),
+              duration: Duration(seconds: 2),
+            ),
+          );
+
+          // Refresh active mission
+          await ref.read(activeMissionProvider.notifier).loadActiveMission();
+
+          // Refresh schedule data
+          ref.invalidate(scheduleProvider);
+          ref.invalidate(todayScheduleProvider);
+          ref.invalidate(upcomingSchedulesProvider);
+
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.white),
+                    SizedBox(width: 16),
+                    Text('Data refreshed successfully!'),
+                  ],
+                ),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        },
+        tooltip: 'Refresh',
+        child: const Icon(Icons.refresh),
+      ),
+    );
+  }
+
+  void _showOnlineConfirmation(BuildContext context, WidgetRef ref, schedule) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Go Online?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Confirm your team for today:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            _buildTeamInfo(
+              context,
+              Icons.drive_eta,
+              'Driver',
+              schedule.driverNameSafe,
+            ),
+            const SizedBox(height: 12),
+            _buildTeamInfo(
+              context,
+              Icons.medical_services,
+              'Doctor',
+              schedule.doctorNameSafe,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Ambulance: ${schedule.ambulanceVehicle} ${schedule.ambulancePlate}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+
+              final success = await ref
+                  .read(availabilityProvider.notifier)
+                  .toggleAvailability();
+
+              if (context.mounted) {
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('You are now online!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } else {
+                  final error = ref.read(availabilityProvider).error;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(error ?? 'Failed to go online'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTeamInfo(
+    BuildContext context,
+    IconData icon,
+    String role,
+    String name,
+  ) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 12),
+        Text(
+          '$role: ',
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+        ),
+        Expanded(
+          child: Text(name, style: Theme.of(context).textTheme.bodyMedium),
+        ),
+      ],
     );
   }
 

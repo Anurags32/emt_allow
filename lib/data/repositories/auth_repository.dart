@@ -46,6 +46,7 @@ class AuthRepository {
           final isDriver = data['is_driver'] as bool? ?? false;
           final expiryTime = data['expiry_time']?.toString() ?? '';
           final mySchedule = jsonEncode(data['my_schedule'] ?? []);
+          final pendingLogin = data['pending_login'] as int? ?? 0;
 
           // Determine role based on is_emt and is_driver flags
           UserRole role = UserRole.emt;
@@ -76,6 +77,7 @@ class AuthRepository {
             isDriver: isDriver,
             expiryTime: expiryTime,
             mySchedule: mySchedule,
+            pendingLogin: pendingLogin,
           );
 
           // Also save user model for backward compatibility
@@ -88,7 +90,9 @@ class AuthRepository {
             debugPrint(
               '[AUTH] Company ID: $companyId, Is EMT: $isEmt, Is Driver: $isDriver',
             );
-            debugPrint('[AUTH] Expiry: $expiryTime');
+            debugPrint(
+              '[AUTH] Expiry: $expiryTime, Pending Login: $pendingLogin',
+            );
           }
 
           return user;
