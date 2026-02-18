@@ -5,6 +5,9 @@ import '../providers/availability_provider.dart';
 import '../providers/active_mission_provider.dart';
 import '../providers/schedule_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
+import '../../../../core/widgets/user_avatar.dart';
+import '../../../../core/storage/secure_storage_service.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -16,21 +19,21 @@ class HomeScreen extends ConsumerWidget {
     final activeMissionState = ref.watch(activeMissionProvider);
     final todayScheduleAsync = ref.watch(todayScheduleProvider);
     final upcomingSchedulesAsync = ref.watch(upcomingSchedulesProvider);
+    final profileAsync = ref.watch(profileProvider);
 
     return Scaffold(
       appBar: AppBar(
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12),
+          child: UserAvatar(
+            size: 40,
+            onTap: () {
+              context.push('/profile');
+            },
+          ),
+        ),
         title: const Text('EMT Dashboard'),
         actions: [
-          CircleAvatar(
-            backgroundColor: Colors.white,
-            child: IconButton(
-              icon: const Icon(Icons.person),
-              tooltip: 'profile',
-              onPressed: () {
-                context.push('/profile');
-              },
-            ),
-          ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Logout',
@@ -87,27 +90,37 @@ class HomeScreen extends ConsumerWidget {
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Welcome back,',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        authState.user?.name ?? 'EMT',
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        authState.user?.roleDisplayName ?? '',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    ],
+                  child: FutureBuilder<String?>(
+                    future: ref
+                        .read(secureStorageServiceProvider)
+                        .getUserName(),
+                    builder: (context, snapshot) {
+                      final userName =
+                          authState.user?.name ?? snapshot.data ?? 'EMT';
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Welcome back,',
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            userName,
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            authState.user?.roleDisplayName ?? 'EMT',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ),
@@ -190,6 +203,7 @@ class HomeScreen extends ConsumerWidget {
                                   const SnackBar(
                                     content: Text(
                                       'No schedule found for today. Please contact admin.',
+                                      style: TextStyle(color: Colors.white),
                                     ),
                                     backgroundColor: Colors.orange,
                                   ),
@@ -214,7 +228,7 @@ class HomeScreen extends ConsumerWidget {
                 const Center(child: CircularProgressIndicator())
               else if (activeMissionState.mission != null)
                 Card(
-                  color: Theme.of(context).colorScheme.primaryContainer,
+                  color: Theme.of(context).colorScheme.primary,
                   child: InkWell(
                     onTap: () {
                       context.push(
@@ -229,34 +243,37 @@ class HomeScreen extends ConsumerWidget {
                         children: [
                           Row(
                             children: [
-                              Icon(
-                                Icons.emergency,
-                                color: Theme.of(context).colorScheme.error,
-                              ),
+                              const Icon(Icons.emergency, color: Colors.white),
                               const SizedBox(width: 8),
                               Text(
                                 'Active Mission',
                                 style: Theme.of(context).textTheme.titleLarge
-                                    ?.copyWith(fontWeight: FontWeight.bold),
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 12),
                           Text(
                             activeMissionState.mission!.missionNumber,
-                            style: Theme.of(context).textTheme.titleMedium,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(color: Colors.white),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             activeMissionState
                                 .mission!
                                 .emergencyTypeDisplayName,
-                            style: Theme.of(context).textTheme.bodyLarge,
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(color: Colors.white),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             'Status: ${activeMissionState.mission!.statusDisplayName}',
-                            style: Theme.of(context).textTheme.bodyMedium,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: Colors.white),
                           ),
                           const SizedBox(height: 12),
                           ElevatedButton.icon(
@@ -265,6 +282,12 @@ class HomeScreen extends ConsumerWidget {
                                 '/mission-details/${activeMissionState.mission!.id}',
                               );
                             },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
+                            ),
                             icon: const Icon(Icons.arrow_forward),
                             label: const Text('View Mission'),
                           ),
@@ -333,12 +356,21 @@ class HomeScreen extends ConsumerWidget {
                               Text(
                                 'Today\'s Schedule',
                                 style: Theme.of(context).textTheme.titleLarge
-                                    ?.copyWith(fontWeight: FontWeight.bold),
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.secondary,
+                                    ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 16),
-                          _buildScheduleDetails(context, todaySchedule),
+                          _buildScheduleDetails(
+                            context,
+                            todaySchedule,
+                            textColor: Theme.of(context).colorScheme.onSurface,
+                          ),
                         ],
                       ),
                     ),
@@ -629,7 +661,10 @@ class HomeScreen extends ConsumerWidget {
                 if (success) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('You are now online!'),
+                      content: Text(
+                        'You are now online!',
+                        style: TextStyle(color: Colors.white),
+                      ),
                       backgroundColor: Colors.green,
                     ),
                   );
@@ -637,7 +672,10 @@ class HomeScreen extends ConsumerWidget {
                   final error = ref.read(availabilityProvider).error;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(error ?? 'Failed to go online'),
+                      content: Text(
+                        error ?? 'Failed to go online',
+                        style: const TextStyle(color: Colors.white),
+                      ),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -674,7 +712,11 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildScheduleDetails(BuildContext context, schedule) {
+  Widget _buildScheduleDetails(
+    BuildContext context,
+    schedule, {
+    Color textColor = Colors.black,
+  }) {
     return Column(
       children: [
         _buildInfoRow(
@@ -682,6 +724,7 @@ class HomeScreen extends ConsumerWidget {
           Icons.access_time,
           'Shift',
           schedule.shiftDisplayName,
+          textColor: textColor,
         ),
         const SizedBox(height: 12),
         _buildInfoRow(
@@ -689,15 +732,23 @@ class HomeScreen extends ConsumerWidget {
           Icons.local_shipping,
           'Ambulance',
           '${schedule.ambulanceVehicle} ${schedule.ambulanceModel}',
+          textColor: textColor,
         ),
         const SizedBox(height: 12),
-        _buildInfoRow(context, Icons.badge, 'Plate', schedule.ambulancePlate),
-        const Divider(height: 24),
+        _buildInfoRow(
+          context,
+          Icons.badge,
+          'Plate',
+          schedule.ambulancePlate,
+          textColor: textColor,
+        ),
+        Divider(height: 24, color: textColor.withOpacity(0.3)),
         Text(
           'Team Members',
-          style: Theme.of(
-            context,
-          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: textColor,
+          ),
         ),
         const SizedBox(height: 12),
         if (schedule.driverName != false)
@@ -706,6 +757,7 @@ class HomeScreen extends ConsumerWidget {
             Icons.drive_eta,
             'Driver',
             schedule.driverNameSafe,
+            textColor: textColor,
           ),
         if (schedule.doctorName != false)
           _buildTeamMember(
@@ -713,6 +765,7 @@ class HomeScreen extends ConsumerWidget {
             Icons.medical_services,
             'Doctor',
             schedule.doctorNameSafe,
+            textColor: textColor,
           ),
         if (schedule.nurseName != false)
           _buildTeamMember(
@@ -720,6 +773,7 @@ class HomeScreen extends ConsumerWidget {
             Icons.local_hospital,
             'Nurse',
             schedule.nurseNameSafe,
+            textColor: textColor,
           ),
         if (schedule.emtName != false)
           _buildTeamMember(
@@ -727,6 +781,7 @@ class HomeScreen extends ConsumerWidget {
             Icons.emergency,
             'EMT',
             schedule.emtNameSafe,
+            textColor: textColor,
           ),
       ],
     );
@@ -736,20 +791,27 @@ class HomeScreen extends ConsumerWidget {
     BuildContext context,
     IconData icon,
     String label,
-    String value,
-  ) {
+    String value, {
+    Color textColor = Colors.black,
+  }) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: Theme.of(context).colorScheme.secondary),
+        Icon(icon, size: 20, color: textColor),
         const SizedBox(width: 12),
         Text(
           '$label: ',
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+            color: textColor,
+          ),
         ),
         Expanded(
-          child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
+          child: Text(
+            value,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: textColor),
+          ),
         ),
       ],
     );
@@ -759,20 +821,29 @@ class HomeScreen extends ConsumerWidget {
     BuildContext context,
     IconData icon,
     String role,
-    String name,
-  ) {
+    String name, {
+    Color textColor = Colors.black,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: Colors.grey),
+          Icon(icon, size: 18, color: textColor),
           const SizedBox(width: 12),
-          Text('$role: ', style: Theme.of(context).textTheme.bodySmall),
           Text(
-            name,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+            '$role: ',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w500,
+              color: textColor,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              name,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: textColor),
+            ),
           ),
         ],
       ),

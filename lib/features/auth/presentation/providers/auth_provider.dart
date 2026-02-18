@@ -21,7 +21,10 @@ class AuthState {
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepository _authRepository;
 
-  AuthNotifier(this._authRepository) : super(AuthState());
+  AuthNotifier(this._authRepository) : super(AuthState()) {
+    // Load user data on initialization
+    loadCurrentUser();
+  }
 
   Future<bool> login(String email, String password) async {
     state = state.copyWith(isLoading: true, error: null);
@@ -38,7 +41,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<void> loadCurrentUser() async {
     final user = await _authRepository.getCurrentUser();
-    state = state.copyWith(user: user);
+    if (user != null) {
+      state = state.copyWith(user: user);
+    }
   }
 
   Future<void> logout() async {

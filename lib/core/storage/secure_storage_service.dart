@@ -38,6 +38,7 @@ class SecureStorageService {
     required String sessionToken,
     required int userId,
     required String userName,
+    required String userImage,
     required int companyId,
     required bool isEmt,
     required bool isDriver,
@@ -49,6 +50,7 @@ class SecureStorageService {
       _storage.write(key: AppConstants.tokenKey, value: sessionToken),
       _storage.write(key: AppConstants.userIdKey, value: userId.toString()),
       _storage.write(key: AppConstants.userNameKey, value: userName),
+      _storage.write(key: AppConstants.userImageKey, value: userImage),
       _storage.write(
         key: AppConstants.companyIdKey,
         value: companyId.toString(),
@@ -71,6 +73,10 @@ class SecureStorageService {
 
   Future<String?> getUserName() async {
     return await _storage.read(key: AppConstants.userNameKey);
+  }
+
+  Future<String?> getUserImage() async {
+    return await _storage.read(key: AppConstants.userImageKey);
   }
 
   Future<String?> getCompanyId() async {

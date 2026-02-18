@@ -4,6 +4,7 @@ class AppConstants {
   static const String userKey = 'user_data';
   static const String userIdKey = 'user_id';
   static const String userNameKey = 'user_name';
+  static const String userImageKey = 'user_image';
   static const String companyIdKey = 'company_id';
   static const String isEmtKey = 'is_emt';
   static const String isDriverKey = 'is_driver';
@@ -12,7 +13,7 @@ class AppConstants {
   static const String pendingLoginKey = 'pending_login';
 
   // API Base URL
-  static const String baseUrl = 'http://192.168.29.106:8018';
+  static const String baseUrl = 'https://nspl-allo811-staging-28032201.dev.odoo.com/odoo';
 
   // API Endpoints
   static const String loginEndpoint = '/api/login';
@@ -22,6 +23,7 @@ class AppConstants {
   static const String getScheduleEndpoint = '/api/get_schedule';
   static const String postEmtNotesEndpoint = '/api/post_emt_notes';
   static const String getEmtNotesEndpoint = '/api/get_emt_notes';
+  static const String getProfileInfoEndpoint = '/api/get_profile_info';
   static const String ambulanceEndpoint = '/api/ambulance';
   static const String missionEndpoint = '/api/mission';
   static const String patientEndpoint = '/api/patient';

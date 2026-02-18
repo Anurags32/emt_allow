@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/storage/secure_storage_service.dart';
+import '../../../../data/repositories/profile_repository.dart';
 
 class AvailabilityState {
   final bool isOnline;
@@ -28,25 +29,39 @@ class AvailabilityState {
 class AvailabilityNotifier extends StateNotifier<AvailabilityState> {
   final Dio _dio;
   final SecureStorageService _storage;
+  final ProfileRepository _profileRepository;
 
-  AvailabilityNotifier(this._dio, this._storage) : super(AvailabilityState()) {
+  AvailabilityNotifier(this._dio, this._storage, this._profileRepository)
+    : super(AvailabilityState()) {
     _initializeStatus();
   }
 
-  // Initialize status from pending_login
+  // Initialize status from profile API
   Future<void> _initializeStatus() async {
     try {
-      final pendingLogin = await _storage.getPendingLogin();
-      state = state.copyWith(isOnline: pendingLogin == 1);
+      final profile = await _profileRepository.getProfileInfo();
+      state = state.copyWith(isOnline: profile.pendingLogin);
 
       if (kDebugMode) {
         debugPrint(
-          '[AVAILABILITY] Initialized - Pending Login: $pendingLogin, Online: ${pendingLogin == 1}',
+          '[AVAILABILITY] Initialized from profile - Pending Login: ${profile.pendingLogin}, Online: ${profile.pendingLogin}',
         );
       }
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint('[AVAILABILITY] Init error: $e');
+      // Fallback to storage
+      try {
+        final pendingLogin = await _storage.getPendingLogin();
+        state = state.copyWith(isOnline: pendingLogin == 1);
+
+        if (kDebugMode) {
+          debugPrint(
+            '[AVAILABILITY] Initialized from storage - Pending Login: $pendingLogin, Online: ${pendingLogin == 1}',
+          );
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('[AVAILABILITY] Init error: $e');
+        }
       }
     }
   }
@@ -118,5 +133,6 @@ final availabilityProvider =
     StateNotifierProvider<AvailabilityNotifier, AvailabilityState>((ref) {
       final dio = ref.read(dioClientProvider);
       final storage = ref.read(secureStorageServiceProvider);
-      return AvailabilityNotifier(dio, storage);
+      final profileRepo = ref.read(profileRepositoryProvider);
+      return AvailabilityNotifier(dio, storage, profileRepo);
     });

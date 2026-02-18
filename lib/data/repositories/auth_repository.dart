@@ -41,6 +41,7 @@ class AuthRepository {
           final sessionToken = data['session_token']?.toString() ?? '';
           final userId = data['user_id'] as int? ?? 0;
           final userName = data['user_name']?.toString() ?? email.split('@')[0];
+          final userImage = data['user_image']?.toString() ?? '';
           final companyId = data['company_id'] as int? ?? 0;
           final isEmt = data['is_emt'] as bool? ?? false;
           final isDriver = data['is_driver'] as bool? ?? false;
@@ -81,6 +82,7 @@ class AuthRepository {
             sessionToken: sessionToken,
             userId: userId,
             userName: userName,
+            userImage: userImage,
             companyId: companyId,
             isEmt: isEmt,
             isDriver: isDriver,
