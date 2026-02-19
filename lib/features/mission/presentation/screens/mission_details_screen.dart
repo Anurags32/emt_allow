@@ -14,7 +14,7 @@ class MissionDetailsScreen extends ConsumerWidget {
     final missionState = ref.watch(missionDetailProvider(missionId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Mission Details')),
+      appBar: AppBar(title: const Text('Case Number')),
       body: missionState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(

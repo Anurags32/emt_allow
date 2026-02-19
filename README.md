@@ -68,8 +68,8 @@ Role is determined by backend response after login.
 
 1. **Splash Screen** → Check JWT token → Navigate to Home or Login
 2. **Login Screen** → Employee ID/Email + Password → Home
-3. **Home Screen** → Availability toggle + Active mission card
-4. **Mission Details** → View mission info, timeline, clinic details
+3. **Home Screen** → Availability toggle + Case Number card
+4. **Case Number** → View mission info, timeline, clinic details
 5. **Patient Details** → View patient info, medical history
 6. **Medical Notes** → Add/view notes with attachments
 7. **Patient Handover** → Complete handover to clinic

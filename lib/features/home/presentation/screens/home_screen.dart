@@ -72,7 +72,7 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          // Refresh active mission
+          // Refresh Case Number
           await ref.read(activeMissionProvider.notifier).loadActiveMission();
 
           // Refresh schedule data
@@ -223,7 +223,7 @@ class HomeScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
 
-              // Active Mission Card
+              // Case Number Card
               if (activeMissionState.isLoading)
                 const Center(child: CircularProgressIndicator())
               else if (activeMissionState.mission != null)
@@ -246,7 +246,7 @@ class HomeScreen extends ConsumerWidget {
                               const Icon(Icons.emergency, color: Colors.white),
                               const SizedBox(width: 8),
                               Text(
-                                'Active Mission',
+                                'Case Number',
                                 style: Theme.of(context).textTheme.titleLarge
                                     ?.copyWith(
                                       fontWeight: FontWeight.bold,
@@ -305,7 +305,7 @@ class HomeScreen extends ConsumerWidget {
                         Icon(Icons.inbox, size: 64, color: Colors.grey[400]),
                         const SizedBox(height: 16),
                         Text(
-                          'No Active Mission',
+                          'No Case Number',
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 8),
@@ -580,7 +580,7 @@ class HomeScreen extends ConsumerWidget {
             ),
           );
 
-          // Refresh active mission
+          // Refresh Case Number
           await ref.read(activeMissionProvider.notifier).loadActiveMission();
 
           // Refresh schedule data

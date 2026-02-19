@@ -13,7 +13,7 @@ class AppConstants {
   static const String pendingLoginKey = 'pending_login';
 
   // API Base URL
-  static const String baseUrl = 'https://nspl-allo811-staging-28032201.dev.odoo.com/odoo';
+  static const String baseUrl = 'http://192.168.29.106:8018';
 
   // API Endpoints
   static const String loginEndpoint = '/api/login';
